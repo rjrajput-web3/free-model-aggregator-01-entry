@@ -403,7 +403,9 @@ async function register(port: number, report: CatalogReport): Promise<void> {
   if (!res.ok) {
     throw new Error(`POST ${ENV_URL}/register answered HTTP ${res.status}: ${(await res.text()).slice(0, 500)}`);
   }
-  const reply: unknown = await res.json();
+  // The reply only carries the workload size for the log: a non-JSON 200
+  // must not kill an entry whose registration already succeeded.
+  const reply: unknown = await res.json().catch(() => null);
   if (isRecord(reply) && typeof reply.requests === 'number') {
     log(`registered: the workload holds ${reply.requests} requests`);
   }
